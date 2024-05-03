@@ -86,13 +86,18 @@ public class ReservationController implements ReservationApi {
     }
 
     @Override
-    public ResponseEntity<Reservation> updateReservation(ReservationDto reservationDto) {
-        //reservationService.updateReservation();
-        return null;
+    public ResponseEntity<ReservationDto> updateReservation(ReservationDto reservationDto) {
+        ReservationDto reservationDtoOutput = reservationService.updateReservation(reservationDto);
+        if(reservationDtoOutput!=null){
+            return new ResponseEntity<>(reservationDtoOutput, HttpStatus.OK);
+        }   else{
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
     }
 
     @Override
-    public ResponseEntity<Reservation> addReservation(ReservationDto reservationDto) {
+    public ResponseEntity<ReservationDto> addReservation(ReservationDto reservationDto) {
+        reservationService.addReservation()
         return null;
     }
 

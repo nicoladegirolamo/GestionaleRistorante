@@ -1,9 +1,12 @@
 package com.example.GestionaleRistorante.service;
 
+import com.example.GestionaleRistorante.dto.ReservationDto;
+import com.example.GestionaleRistorante.dto.TableRestaurantDto;
 import com.example.GestionaleRistorante.entity.Reservation;
 import com.example.GestionaleRistorante.entity.TableRestaurant;
 import com.example.GestionaleRistorante.repository.TableRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
@@ -18,18 +21,18 @@ import java.util.Optional;
 public class TableBrookerService { //table dispatcher
 
     private final TableRepository tableRepository;
-    //private List<TableRestaurant> tablesList;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public TableBrookerService(TableRepository tableRepository) {
+    public TableBrookerService(TableRepository tableRepository, ModelMapper modelMapper) {
         this.tableRepository = tableRepository;
-        //tablesList = tableRepository.findAll();
+        this.modelMapper = modelMapper;
     }
 
-    public TableRestaurant getFirstAvailablebyData(LocalDate date, LocalTime time, Integer seats){
+    public TableRestaurantDto getFirstAvailablebyData(LocalDate date, LocalTime time, Integer seats){
         try {
             List<TableRestaurant> tableList = tableRepository.findByData(date, time, seats);
-            return tableList.get(0);
+            return modelMapper.map(tableList.get(0), TableRestaurantDto.class);
         }   catch(Exception e){
             log.error("No available tables found");
             return null;
@@ -47,13 +50,13 @@ public class TableBrookerService { //table dispatcher
         return tableRepository.save(tableRestaurant);
     }
 
-    public TableRestaurant updateTable(TableRestaurant tableInput, Reservation reservation){
-        Optional<TableRestaurant> tableOptional =  tableRepository.findById(tableInput.getId());
+    public TableRestaurant updateTable(TableRestaurantDto tableInputDto){
+        Optional<TableRestaurant> tableOptional =  tableRepository.findById(tableInputDto.getId());
         if(tableOptional.isPresent()){
             TableRestaurant table = tableOptional.get();
-            if(reservation!=null){
-                LocalDateTime key = LocalDateTime.of(reservation.getIdReservation().getDate(), reservation.getIdReservation().getTime());
-                table.getReservations().put(key, reservation);
+            if(reservationDto!=null){
+                LocalDateTime key = LocalDateTime.of(reservationDto.getIdReservation().getDate(), reservationDto.getIdReservation().getTime());
+                table.getReservations().put(key, modelMapper.map(reservationDto, Reservation.class));
             }
             if(tableInput.getSeats()!=null){
                 table.setSeats(tableInput.getSeats());

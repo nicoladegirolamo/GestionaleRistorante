@@ -1,6 +1,8 @@
 package com.example.GestionaleRistorante.service;
 
+import com.example.GestionaleRistorante.dto.CustomerDto;
 import com.example.GestionaleRistorante.dto.ReservationDto;
+import com.example.GestionaleRistorante.dto.TableRestaurantDto;
 import com.example.GestionaleRistorante.entity.*;
 import com.example.GestionaleRistorante.repository.ReservationRepository;
 import com.example.GestionaleRistorante.repository.TableRepository;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -22,78 +25,75 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final CustomerService customerService;
     private final TableBrookerService tableBrooker;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public ReservationService(ReservationRepository reservationRepository, TableRepository tableRepository, CustomerService customerService, ModelMapper modelMapper, TableBrookerService tableBrooker) {
+    public ReservationService(ReservationRepository reservationRepository, TableRepository tableRepository, CustomerService customerService, ModelMapper modelMapper, TableBrookerService tableBrooker, ModelMapper modelMapper1) {
         this.reservationRepository = reservationRepository;
         this.customerService = customerService;
         this.tableBrooker = tableBrooker;
+        this.modelMapper = modelMapper1;
     }
 
 
     //CRUD OPERATIONS
 
-    public Reservation addReservation(LocalDate reservationDate, LocalTime reservationTime, Integer seats, String name, String surname, String contactNumber){
+//al contorller arriverà una richiesta con un json contenente una reservationDto, questa conterrà a sua volta le strutture TableRestaurant(valorizzato solo il numero di posti) e Customer(valorizzati solo nome, cognome e num telefono)
+    public ReservationDto addReservation(ReservationDto reservationDto){
         try{
-            TableRestaurant tableAvailable = tableBrooker.getFirstAvailablebyData(reservationDate, reservationTime, seats);
-            if (tableAvailable!=null) {
-                IdReservation idReservation =  new IdReservation.Builder()
-                    .setIdTable(tableAvailable.getId())
-                    .setDate(reservationDate)
-                    .setTime(reservationTime)
-                    .build();
-                Customer customer = customerService.doesCustomerExist(name, surname, contactNumber);
-                if(customer==null) {
-                    customer = new Customer.Builder().setCustomerName(name).setCustomerSurname(surname).setContactNumber(contactNumber).setPremium(false).build();
-                    customerService.addCustomer(customer);
-                }
-                TimeSlot slot = TimeSlot.slotAllocation(reservationTime);
-                Reservation reservation = new Reservation.Builder()
-                        .setIdReservation(idReservation)
-                        .setTableRestaurant(tableAvailable)
-                        .setCustomer(customer)
-                        .setTimestamp(LocalDateTime.now())
-                        .setTimeSlot(slot)
-                        .build();
-                tableBrooker.updateTable(tableAvailable, reservation);
-                reservationRepository.save(reservation);
-                return reservation;
-            }   else{
-                    log.error("Table already booked for this reservationTime slot");
-                    return null;
-                }
-        }   catch (Exception e){
-                log.error("Error during table booking occured.");
-                return null;
+            TableRestaurantDto tableAvailableDto = tableBrooker.getFirstAvailablebyData(reservationDto.getIdReservation().getDate(), reservationDto.getIdReservation().getTime(), reservationDto.getTableRestaurantDto().getSeats());
+            if (tableAvailableDto==null) {
+                throw new Exception("Table already booked for this reservationTime slot");
             }
-    }
-
-    //public Reservation updateReservation (LocalDate newReservationDate, LocalTime newReservationTime, Integer newSeats, LocalDate oldReservationDate, LocalTime oldReservationTime, Integer oldSeats, String surname){
-
-        public Reservation updateReservation (ReservationDto oldReservation, ReservationDto newReservation){
-        Optional<Reservation> reservationOptional = getReservation(oldReservation.getIdReservation());
-        if(reservationOptional.isEmpty()){ //controllo sull'esistenza della vecchia prenotazione
+            IdReservation idReservation =  new IdReservation.Builder()
+                                                            .setIdTable(tableAvailableDto.getId())
+                                                            .setDate(reservationDto.getIdReservation().getDate())
+                                                            .setTime(reservationDto.getIdReservation().getTime())
+                                                            .build();
+            CustomerDto customerDtoResult = customerService.addCustomer(reservationDto.getCustomerDto()); //lo aggiunge solo se non esiste
+            TimeSlot slot = TimeSlot.slotAllocation(reservationDto.getIdReservation().getTime());
+            reservationDto.setIdReservation(idReservation);
+            reservationDto.setTableRestaurantDto(tableAvailableDto);
+            reservationDto.setCustomerDto(customerDtoResult);
+            reservationDto.setTimestamp(LocalDateTime.now());
+            reservationDto.setTimeSlot(slot);
+            LocalDateTime key = LocalDateTime.of(reservationDto.getIdReservation().getDate(), reservationDto.getIdReservation().getTime());
+            tableAvailableDto.getReservationsDto().put(key, reservationDto);
+            tableBrooker.updateTable(tableAvailableDto); //sistemare dentro questo updateTable
+            reservationRepository.save(modelMapper.map(reservationDto, Reservation.class));
+            return reservationDto;
+        }   catch (Exception e){
+            log.error("Error during table booking occured.");
             return null;
         }
-        Reservation reservation = reservationOptional.get();
-        /*if (oldReservation.getIdReservation().getDate()!=newReservation.getIdReservation().getDate()
-            || oldReservation.getIdReservation().getTime()!=newReservation.getIdReservation().getTime()
-            && Objects.equals(oldReservation.getTableRestaurantDto().getSeats(), newReservation.getTableRestaurantDto().getSeats())){
-        reservation.setIdReservation(newReservation.getIdReservation());
-        } */
-        if (Objects.equals(oldReservation.getTableRestaurantDto().getSeats(), newReservation.getTableRestaurantDto().getSeats())){
-            TableRestaurant tableAvailable = tableBrooker.getFirstAvailablebyData(newReservation.getIdReservation().getDate(), newReservation.getIdReservation().getTime(), newReservation.getTableRestaurantDto().getSeats());
-            IdReservation idReservation =  new IdReservation.Builder()
-                                                            .setIdTable(tableAvailable.getId())
-                                                            .setDate(newReservation.getIdReservation().getDate())
-                                                            .setTime(newReservation.getIdReservation().getTime())
-                                                            .build();
-            reservation.setIdReservation(idReservation);
-            reservation.setTableRestaurant(tableAvailable);
-        }   else {
-            reservation.setIdReservation(newReservation.getIdReservation());
-        }
-        return reservationRepository.save(reservation);
+    }
+
+        public ReservationDto updateReservation (ReservationDto newReservation){
+        try {
+            Optional<ReservationDto> reservationOptional = getReservation(newReservation.getIdReservation());
+            if (reservationOptional.isEmpty()) { //controllo sull'esistenza della vecchia prenotazione
+                throw new Exception("Reservation not found");
+            }
+            ReservationDto reservationDto = reservationOptional.get();
+            if (Objects.equals(reservationDto.getTableRestaurantDto().getSeats(), newReservation.getTableRestaurantDto().getSeats())) {
+                TableRestaurantDto tableAvailableDto = tableBrooker.getFirstAvailablebyData(newReservation.getIdReservation().getDate(), newReservation.getIdReservation().getTime(), newReservation.getTableRestaurantDto().getSeats());
+                IdReservation idReservation = new IdReservation.Builder()
+                        .setIdTable(tableAvailableDto.getId())
+                        .setDate(newReservation.getIdReservation().getDate())
+                        .setTime(newReservation.getIdReservation().getTime())
+                        .build();
+                reservationDto.setIdReservation(idReservation);
+                reservationDto.setTableRestaurantDto(tableAvailableDto);
+            }   else {
+                    reservationDto.setIdReservation(newReservation.getIdReservation());
+                }
+            Reservation reservation = modelMapper.map(reservationDto, Reservation.class);
+            reservationRepository.save(reservation);
+            return reservationDto;
+        }   catch(Exception e){
+                log.error(e.getMessage());
+                return null;
+            }
     }
 
     public Boolean deleteReservation(IdReservation idReservation){
@@ -107,26 +107,38 @@ public class ReservationService {
         return true;
     }
 
-    public List<Reservation> getReservations(){
-        return reservationRepository.findAll();
-    }
-
-    public Optional<Reservation> getReservation(IdReservation isReservation){
-        return reservationRepository.findById(isReservation);
-    }
-
-    public Reservation getReservationByData(String surname, LocalDate date, LocalTime time, Integer seats){
-        return reservationRepository.findByData(date, time, surname, seats);
-    }
-
-    public List<Reservation> getReservationsByCustomer(String name, String surname, Integer seats){
-        List<Reservation> listaPrenotazioni;
-        try{
-            listaPrenotazioni = reservationRepository.findByCustomer(name, surname, seats);
-        } catch(Exception e){
-            log.error("Prenotazioni non trovate.");
+    public List<ReservationDto> getReservations(){
+        try {
+            List<ReservationDto> reservationDtos = new ArrayList<>();
+        List<Reservation> outList = reservationRepository.findAll();
+        outList.forEach(reservation -> reservationDtos.add(modelMapper.map(reservation, ReservationDto.class)));
+        return reservationDtos;
+        }   catch(Exception e){
+            log.error("Bookings not found");
             return null;
         }
-        return listaPrenotazioni;
     }
+
+    public Optional<ReservationDto> getReservation(IdReservation isReservation){
+        Optional<Reservation> reservationOptional = reservationRepository.findById(isReservation);
+        return reservationOptional.map(reservation -> modelMapper.map(reservation, ReservationDto.class));
+    }
+
+    public List<ReservationDto> getReservationsByCustomer(String name, String surname, Integer seats){
+        try {
+            List<ReservationDto> reservationDtos = new ArrayList<>();
+            List<Reservation> outList = reservationRepository.findByCustomer(name, surname, seats);
+            outList.forEach(reservation -> reservationDtos.add(modelMapper.map(reservation, ReservationDto.class)));
+            return reservationDtos;
+        }   catch(Exception e){
+            log.error("Bookings not found");
+            return null;
+            }
+    }
+
+       /* public ReservationDto getReservationByData(String surname, LocalDate date, LocalTime time, Integer seats){
+
+        return reservationRepository.findByData(date, time, surname, seats);
+    }*/
+
 }

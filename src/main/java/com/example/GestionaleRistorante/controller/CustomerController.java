@@ -1,6 +1,7 @@
 package com.example.GestionaleRistorante.controller;
 
 import com.example.GestionaleRistorante.controller.interfaces.CustomerApi;
+import com.example.GestionaleRistorante.dto.CustomerDto;
 import com.example.GestionaleRistorante.entity.Customer;
 import com.example.GestionaleRistorante.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,10 +44,10 @@ public class CustomerController implements CustomerApi {
     }
 
     @Override
-    public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
+    public ResponseEntity<CustomerDto> createCustomer(@RequestBody CustomerDto customerDto) {
         try {
-            Customer outCustomer = customerService.addCustomer(customer);
-            return new ResponseEntity<>(outCustomer, HttpStatus.OK);
+            CustomerDto outCustomerDto = customerService.addCustomer(customerDto);
+            return new ResponseEntity<>(outCustomerDto, HttpStatus.OK);
         }   catch(Exception e){
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }

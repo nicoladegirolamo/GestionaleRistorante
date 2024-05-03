@@ -1,6 +1,7 @@
 package com.example.GestionaleRistorante.controller.interfaces;
 
 
+import com.example.GestionaleRistorante.dto.CustomerDto;
 import com.example.GestionaleRistorante.entity.Customer;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public interface CustomerApi {
     ResponseEntity<List<Customer>> getAllCustomers();
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Customer> createCustomer(@RequestBody Customer customer);
+    ResponseEntity<CustomerDto> createCustomer(@RequestBody CustomerDto customerDto);
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Customer> updateCustomer(@RequestBody Customer customer);

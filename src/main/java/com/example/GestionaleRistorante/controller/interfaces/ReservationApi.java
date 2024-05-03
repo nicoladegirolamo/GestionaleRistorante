@@ -28,9 +28,9 @@ public interface ReservationApi {
     ResponseEntity<Void> deleteReservation(@RequestBody IdReservation idReservation);
 
     @PutMapping()
-    ResponseEntity<Reservation> updateReservation(@RequestBody ReservationDto reservationDto);
+    ResponseEntity<ReservationDto> updateReservation(@RequestBody ReservationDto reservationDto);
 
     @PostMapping()
-    ResponseEntity<Reservation> addReservation(@RequestBody ReservationDto reservationDto);
+    ResponseEntity<ReservationDto> addReservation(@RequestBody ReservationDto reservationDto);
 
     }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, IdReservation> {
@@ -21,7 +22,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, IdRese
             "JOIN customer AS c ON r.id_customer = c.id " +
             "JOIN tablerestaurant AS t ON r.id_tavolo = t.id " +
             "WHERE r.date = ?1 AND r.time = ?2 AND c.customerSurname = ?3 AND t.seats = ?4")
-    Reservation findByData(LocalDate date, LocalTime time, String surname, Integer seats);
+    Optional<Reservation> findByData(LocalDate date, LocalTime time, String surname, Integer seats);
 
 }
 
