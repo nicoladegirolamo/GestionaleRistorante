@@ -4,15 +4,16 @@ import com.example.GestionaleRistorante.dto.CustomerDto;
 import com.example.GestionaleRistorante.dto.ReservationDto;
 import com.example.GestionaleRistorante.dto.TableRestaurantDto;
 import com.example.GestionaleRistorante.entity.*;
+import com.example.GestionaleRistorante.model.IdReservation;
+import com.example.GestionaleRistorante.model.TimeSlot;
 import com.example.GestionaleRistorante.repository.ReservationRepository;
 import com.example.GestionaleRistorante.repository.TableRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

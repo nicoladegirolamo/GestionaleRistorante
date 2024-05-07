@@ -1,4 +1,4 @@
-package com.example.GestionaleRistorante.entity;
+package com.example.GestionaleRistorante.model;
 
 public enum ReservationStatus {
     CREATED,RECEIVED,CANCELLED,BLOCKED

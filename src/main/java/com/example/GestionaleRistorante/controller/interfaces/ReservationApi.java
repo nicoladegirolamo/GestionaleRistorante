@@ -1,7 +1,7 @@
 package com.example.GestionaleRistorante.controller.interfaces;
 
 import com.example.GestionaleRistorante.dto.ReservationDto;
-import com.example.GestionaleRistorante.entity.IdReservation;
+import com.example.GestionaleRistorante.model.IdReservation;
 import com.example.GestionaleRistorante.entity.Reservation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

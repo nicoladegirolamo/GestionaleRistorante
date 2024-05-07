@@ -2,7 +2,7 @@ package com.example.GestionaleRistorante.controller;
 
 import com.example.GestionaleRistorante.controller.interfaces.ReservationApi;
 import com.example.GestionaleRistorante.dto.ReservationDto;
-import com.example.GestionaleRistorante.entity.IdReservation;
+import com.example.GestionaleRistorante.model.IdReservation;
 import com.example.GestionaleRistorante.entity.Reservation;
 import com.example.GestionaleRistorante.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;

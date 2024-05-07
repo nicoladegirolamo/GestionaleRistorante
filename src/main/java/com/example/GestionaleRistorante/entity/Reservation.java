@@ -1,5 +1,8 @@
 package com.example.GestionaleRistorante.entity;
 
+import com.example.GestionaleRistorante.model.IdReservation;
+import com.example.GestionaleRistorante.model.ReservationStatus;
+import com.example.GestionaleRistorante.model.TimeSlot;
 import jakarta.persistence.*;
 import lombok.Data;
 

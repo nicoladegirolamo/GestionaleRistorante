@@ -10,9 +10,6 @@ import java.util.Optional;
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer,Long> {
 
-    @Query(value = "SELECT * FROM customer AS c WHERE c.customerName = ?1 AND c.customerSurname = ?2 AND c.contactNumber = ?3")
-    Optional<Customer> findCustomerByData(String name, String surname, String contactNumber);
-
-    @Query(value = "SELECT * FROM customer AS c WHERE c.contactNumber = ?1")
+    //@Query(value = "SELECT * FROM customer AS c WHERE c.contactNumber = ?1")
     Optional<Customer> findByContactNumber(String contactNumber);
 }

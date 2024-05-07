@@ -6,11 +6,14 @@ import com.example.GestionaleRistorante.entity.Customer;
 import com.example.GestionaleRistorante.repository.CustomerRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+
+import java.beans.PropertyDescriptor;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -29,7 +32,7 @@ public class CustomerService {
     //CRUD OPERATIONS
 
     //le entità indipendenti le costruisco fuori dai metodi crud e gliele passo come dipendenze, così non rinuncio alla flessibilità data dal pattern builder
-    //l'entità dipendente Reservation invece per semplicità la assemblo dentro il service
+    //l'entità Reservation invece per semplicità la assemblo dentro il service
     public CustomerDto addCustomer (CustomerDto customerDto){
         try{
             Optional<Customer> customerOptional = customerRepository.findByContactNumber(customerDto.getContactNumber());
@@ -47,34 +50,16 @@ public class CustomerService {
 
     }
 
-    public Customer updateCustomer (Customer customerInput){
-       // public Customer updateCustomer (Long id, String customerSurname, String customerName, String contactNumber, String email, String address, Boolean isPremium, Reservation reservation){
-        Optional<Customer> customerOptional =  customerRepository.findById(customerInput.getId());
-        if(customerOptional.isPresent()){
-            Customer customer = customerOptional.get();
-            if(!Objects.equals(customer.getCustomerName(), customerInput.getCustomerName())){
-                customer.setCustomerName(customerInput.getCustomerName());
-            }
-            if(!Objects.equals(customer.getCustomerSurname(), customerInput.getCustomerSurname())){
-                customer.setCustomerSurname(customer.getCustomerSurname());
-            }
-            if(!Objects.equals(customer.getContactNumber(), customerInput.getContactNumber())){
-                customer.setContactNumber(customerInput.getContactNumber());
-            }
-            if(!Objects.equals(customer.getEmail(), customerInput.getEmail())){
-                customer.setEmail(customerInput.getEmail());
-            }
-            if(!Objects.equals(customer.getAddress(), customerInput.getAddress())){
-                customer.setAddress(customerInput.getAddress());
-            }
-            if(customer.getIsPremium()!=customerInput.getIsPremium()){
-                customer.setIsPremium(customerInput.getIsPremium());
-            }
-          return customerRepository.save(customer);
-        }   else{
-                log.error("Table do not exist");
-                return null;
-            }
+    public Customer updateCustomer (Customer customerInput){ //permette di mandare json con campi nulli
+        try{
+            Customer customer = customerRepository.findById(customerInput.getId())
+                                                  .orElseThrow(()->new Exception("Customer not found"));
+            BeanUtils.copyProperties(customerInput, customer, getNullPropertyNames(customerInput));
+            return customerRepository.save(customer);
+        } catch(Exception e){
+            log.error(e.getMessage());
+            return null;
+        }
     }
 
     public void deleteCustomer(Long id){
@@ -88,4 +73,17 @@ public class CustomerService {
     public Optional<Customer> getCustomer(Long id){
         return customerRepository.findById(id);
     }
+
+    public static String[] getNullPropertyNames(Object source) {
+        final BeanWrapper src = new BeanWrapperImpl(source);
+        PropertyDescriptor[] pds = src.getPropertyDescriptors();
+        Set<String> emptyNames = new HashSet<String>();
+        for(PropertyDescriptor pd : pds) {
+            Object srcValue = src.getPropertyValue(pd.getName());
+            if (srcValue == null) emptyNames.add(pd.getName());
+        }
+        String[] result = new String[emptyNames.size()];
+        return emptyNames.toArray(result);
+    }
+
 }

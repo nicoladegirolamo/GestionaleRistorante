@@ -1,5 +1,6 @@
 package com.example.GestionaleRistorante.entity;
 
+import com.example.GestionaleRistorante.model.TableStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

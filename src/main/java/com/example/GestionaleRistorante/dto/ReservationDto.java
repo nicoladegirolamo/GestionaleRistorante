@@ -1,9 +1,9 @@
 package com.example.GestionaleRistorante.dto;
 
 
-import com.example.GestionaleRistorante.entity.IdReservation;
-import com.example.GestionaleRistorante.entity.ReservationStatus;
-import com.example.GestionaleRistorante.entity.TimeSlot;
+import com.example.GestionaleRistorante.model.IdReservation;
+import com.example.GestionaleRistorante.model.ReservationStatus;
+import com.example.GestionaleRistorante.model.TimeSlot;
 import lombok.Data;
 
 import java.time.LocalDateTime;

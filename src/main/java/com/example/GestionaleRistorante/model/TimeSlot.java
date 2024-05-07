@@ -1,4 +1,4 @@
-package com.example.GestionaleRistorante.entity;
+package com.example.GestionaleRistorante.model;
 
 import java.time.LocalTime;
 
